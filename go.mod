@@ -1,4 +1,4 @@
-module github.com/beardfriend/ddalggak-cli
+module github.com/beardfriend/ddalggak-gen
 
 go 1.22.4
 

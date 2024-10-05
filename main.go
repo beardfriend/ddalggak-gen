@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/beardfriend/ddalggak-cli/internal"
-	_ "github.com/beardfriend/ddalggak-cli/internal"
+	"github.com/beardfriend/ddalggak-gen/internal"
+
 	"github.com/urfave/cli/v2"
 )
 
