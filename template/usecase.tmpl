@@ -1,0 +1,54 @@
+package {{.SchemaName}}
+
+import (
+    "{{.ModuleName}}/ent"
+    "context"
+    "net/http"
+    "errors"
+    "{{.ModuleName}}/internal/common"
+    "{{.ModuleName}}/internal/{{.SchemaName}}"
+)
+
+type Usecase interface {
+}
+
+type usecase struct {
+   repo Repo
+}
+
+func NewUsecase() Usecase {
+    return &repo{db: db}
+}
+
+func (u *usecase) Get(ctx context.Context, id {{.FieldNameType.ID }}) (result *ent.{{.SchemaName}}, err error) {
+    result, err = u.repo.Get(ctx, id)
+    if err != nil {
+        if ent.IsNotFound(err) {
+            err = common.NewUsecaseError(http.StatusNotFound, err, errors.New("존재하지 않습니다"))
+            return
+        }
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+    return
+}
+
+func (u *usecase) Update(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error) {
+    err = u.repo.Update(ctx, b)
+    if err != nil {
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+    return
+}
+
+func (u *usecase) Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err error) {
+    err = u.repo.Delete(ctx, id)
+    if err != nil {
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+    return
+}
+
+

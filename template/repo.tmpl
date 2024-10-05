@@ -1,0 +1,104 @@
+package {{.SchemaName}}
+
+import (
+    "{{.ModuleName}}/ent"
+    "{{.ModuleName}}/ent/{{.SchemaName}}"
+    "context"
+    "entgo.io/ent/dialect/sql"
+)
+
+type Repo interface {
+    Create(ctx context.Context, b *ent.{{.CamelSchemaName}}) error
+    Get(ctx context.Context, id {{.FieldNameType.ID }}) (*ent.{{.CamelSchemaName}}, error)
+    Update(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error)
+    Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err error)
+    List(ctx context.Context, p *ListParams) ([]*ent.{{.CamelSchemaName}}, error)
+    Total(ctx context.Context, p *ListParams) (int, error)
+}
+
+type repo struct {
+    db *ent.Client
+}
+
+func NewRepo(db *ent.Client) Repo {
+    return &repo{db: db}
+}
+
+func (r *repo) Create(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error) {
+    err = r.db.{{.CamelSchemaName}}.Create().
+{{- range .Fields }}
+    {{- if .IsDefaultGeneratedColumn }}
+         {{- continue }}
+    {{- end }}
+    {{- if .IsOptional }}
+        SetNillable{{.Name}}(b.{{.Name}}).
+        {{- else }}
+        Set{{.Name}}(b.{{.Name}}).
+    {{- end }}
+{{- end }}
+        Exec(ctx)
+    return 
+}
+
+func (r *repo) Get(ctx context.Context, id {{.FieldNameType.ID }}) (*ent.{{.CamelSchemaName}}, error) {
+    return r.db.{{.CamelSchemaName}}.Get(ctx, id)
+}
+
+func (r *repo) Update(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error) {
+    err = r.db.{{.CamelSchemaName}}.UpdateOne(b).
+{{- range .Fields }}
+    {{- if .IsDefaultGeneratedColumn }}
+        {{- continue }}
+    {{- end }}
+
+    {{- if .Name | eq "ID" }}
+        {{- continue }}
+    {{- end }}
+
+    {{- if .IsOptional }}
+        SetNillable{{.Name}}(b.{{.Name}}).
+        {{- else }}
+        Set{{.Name}}(b.{{.Name}}).
+    {{- end }}
+{{- end }}
+        Exec(ctx)
+    return 
+}
+
+func (r *repo) Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err error) {
+    err = r.db.{{.CamelSchemaName}}.DeleteOneID(id).Exec(ctx)
+    return 
+}
+
+
+type ListParams struct {
+    Limit int
+    Offset int
+    OrderFieldName string
+    OrderIsDesc bool
+}
+
+func (r *repo) List(ctx context.Context, p *ListParams) ([]*ent.{{.CamelSchemaName}}, error) {
+    q := r.db.{{.CamelSchemaName}}.
+        Query().
+        Limit(p.Limit).
+        Offset(p.Offset)
+
+    if p.OrderFieldName == "" {
+		p.OrderFieldName = {{.SchemaName}}.FieldUpdatedAt
+	}
+
+	q.Order(func(s *sql.Selector) {
+		name := sql.Asc(p.OrderFieldName)
+		if p.OrderIsDesc {
+			name = sql.Desc(p.OrderFieldName)
+		}
+		s.OrderBy(name)
+	})
+
+    return q.All(ctx)
+}
+
+func (r *repo) Total(ctx context.Context, p *ListParams) (int, error) {
+    return r.db.{{.CamelSchemaName}}.Count(ctx)
+}
