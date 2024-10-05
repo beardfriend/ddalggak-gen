@@ -12,7 +12,7 @@ import (
 func main() {
 	var workingDir, schemaName, modulePath string
 
-	wid, _ := os.Getwd()
+	wid, err := os.Getwd()
 	app := &cli.App{
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -41,6 +41,9 @@ func main() {
 		Name:  "ddalggak-gen",
 		Usage: "boilerplate code generate tool",
 		Action: func(*cli.Context) error {
+			if err != nil {
+				return err
+			}
 			field, err := internal.ParseEntity(workingDir, schemaName)
 			if err != nil {
 				return err
