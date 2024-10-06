@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"log"
 	"os"
 
@@ -8,6 +9,9 @@ import (
 
 	"github.com/urfave/cli/v2"
 )
+
+//go:embed all:template
+var templates embed.FS
 
 func main() {
 	var workingDir, schemaName, modulePath string
@@ -53,8 +57,11 @@ func main() {
 			if err != nil {
 				return err
 			}
-
-			err = internal.GenRepoFile("./template", field, workingDir, modulePath, moduleName, schemaName)
+			repoTemp, err := templates.ReadFile("template/repo.tmpl")
+			if err != nil {
+				return err
+			}
+			err = internal.GenRepoFile(repoTemp, field, workingDir, modulePath, moduleName, schemaName)
 
 			if err != nil {
 				return err

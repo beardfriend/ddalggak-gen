@@ -20,11 +20,13 @@ type RepoTemplate struct {
 	FieldNameType   map[string]FieldType
 }
 
-func GenRepoFile(templatePath string, fields []*Field, workingDir string, modulePath, moduleName string, schemaName string) (err error) {
-	tmpl, err := template.ParseFiles(path.Join(templatePath, "/repo.tmpl"))
+func GenRepoFile(templateByte []byte, fields []*Field, workingDir string, modulePath, moduleName string, schemaName string) (err error) {
+
+	tmpl, err := template.New("repo").Parse(string(templateByte))
 	if err != nil {
 		return err
 	}
+
 	exist, err := checkRepoFile(path.Join(workingDir, modulePath), schemaName)
 	if err != nil || exist {
 		return err

@@ -100,5 +100,95 @@ func (r *repo) List(ctx context.Context, p *ListParams) ([]*ent.{{.CamelSchemaNa
 }
 
 func (r *repo) Total(ctx context.Context, p *ListParams) (int, error) {
-    return r.db.{{.CamelSchemaName}}.Count(ctx)
+    return r.db.{{.CamelSchemaName}}.Query().Count(ctx)
 }
+
+
+{{- $parent := . }}
+
+{{- range .Fields }}
+    {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}
+        {{- continue }}
+    {{- end }}
+
+// func by userID
+
+func (r *repo) GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (*ent.{{$parent.CamelSchemaName}}, error) {
+    return r.db.{{$parent.CamelSchemaName}}.Query().Where(
+        {{$parent.SchemaName}}.And(
+            {{$parent.SchemaName}}.IDEQ(id),
+            {{$parent.SchemaName}}.UserIDEQ(userID),
+        ),
+    ).Only(ctx)
+}
+
+func (r *repo) DeleteOneByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (err error) {
+    _, err = r.db.{{$parent.CamelSchemaName}}.Delete().Where(
+        {{$parent.SchemaName}}.And(
+            {{$parent.SchemaName}}.IDEQ(id),
+            {{$parent.SchemaName}}.UserIDEQ(userID),
+        ),
+    ).Exec(ctx)
+    return 
+}
+
+func (r *repo) UpdateOneByUserID(ctx context.Context, b *ent.{{$parent.CamelSchemaName}}) (err error) {
+    err = r.db.{{$parent.CamelSchemaName}}.Update().
+{{- range $parent.Fields }}
+    {{- if .IsDefaultGeneratedColumn }}
+        {{- continue }}
+    {{- end }}
+
+    {{- if .Name | eq "ID" }}
+        {{- continue }}
+    {{- end }}
+
+    {{- if .Name | eq "UserID" }}
+        {{- continue }}
+    {{- end }}
+
+    {{- if .IsOptional }}
+        SetNillable{{.Name}}(b.{{.Name}}).
+        {{- else }}
+        Set{{.Name}}(b.{{.Name}}).
+    {{- end }}
+{{- end }}
+    Where(
+        {{$parent.SchemaName}}.And(
+            {{$parent.SchemaName}}.IDEQ(b.ID),
+            {{$parent.SchemaName}}.UserIDEQ(b.UserID),
+        ),
+    ).Exec(ctx)
+    return 
+}
+
+
+func (r *repo) TotalByUserID(ctx context.Context, userID {{$parent.FieldNameType.UserID }}) (int, error) {
+    return r.db.{{$parent.CamelSchemaName}}.
+        Query().
+        Where({{$parent.SchemaName}}.UserIDEQ(userID)).
+        Count(ctx)
+}
+
+func (r *repo) ListByUserID(ctx context.Context, userID {{$parent.FieldNameType.UserID }}, p *ListParams) ([]*ent.{{$parent.CamelSchemaName}}, error) { 
+    q := r.db.{{$parent.CamelSchemaName}}.
+        Query().
+        Limit(p.Limit).
+        Offset(p.Offset)
+
+    if p.OrderFieldName == "" {
+		p.OrderFieldName = {{$parent.SchemaName}}.FieldUpdatedAt
+	}
+
+	q.Order(func(s *sql.Selector) {
+		name := sql.Asc(p.OrderFieldName)
+		if p.OrderIsDesc {
+			name = sql.Desc(p.OrderFieldName)
+		}
+		s.OrderBy(name)
+	})
+
+    return q.Where({{$parent.SchemaName}}.UserIDEQ(userID)).All(ctx)
+}
+
+{{- end }}
