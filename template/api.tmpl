@@ -150,7 +150,7 @@ func (a *API) Delete(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(common.Response{
-		Message: "ok"
+		Message: "ok",
 	})
 }
 
@@ -194,6 +194,6 @@ func (a *API) Update(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(common.Response{
-		Message: "ok"
+		Message: "ok",
 	})
 }
