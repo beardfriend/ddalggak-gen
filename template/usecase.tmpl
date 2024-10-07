@@ -1,3 +1,4 @@
+{{- $parent := . }}
 package {{.SchemaName}}
 
 import (
@@ -6,21 +7,44 @@ import (
     "net/http"
     "errors"
     "{{.ModuleName}}/internal/common"
-    "{{.ModuleName}}/internal/{{.SchemaName}}"
+    "{{.ModuleName}}/pkg/pagination"
 )
 
 type Usecase interface {
+    Create(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error)
+    Get(ctx context.Context, id {{.FieldNameType.ID }}) (result *ent.{{.CamelSchemaName}}, err error)
+    Update(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error)
+    Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err error)
+    List(ctx context.Context, q *common.ListRequest) (result []*ent.{{.CamelSchemaName}}, pgInfo *pagination.PaginationInfo, err error)
+{{- range .Fields }}
+    {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}
+        {{- continue }}
+    {{- end }}
+    GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (result *ent.{{$parent.CamelSchemaName}}, err error)
+    DeleteOneByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (err error)
+    UpdateOneByUserID(ctx context.Context, b *ent.{{$parent.CamelSchemaName}}) (result *ent.{{$parent.CamelSchemaName}}, err error)
+    ListByUserID(ctx context.Context, userID {{$parent.FieldNameType.UserID }}, q *common.ListRequest) (result []*ent.{{$parent.CamelSchemaName}}, pgInfo *pagination.PaginationInfo, err error)
+{{- end }}
 }
 
 type usecase struct {
-   repo Repo
+	repo Repo
 }
 
-func NewUsecase() Usecase {
-    return &repo{db: db}
+func NewUsecase(repo Repo) Usecase {
+	return &usecase{repo: repo}
 }
 
-func (u *usecase) Get(ctx context.Context, id {{.FieldNameType.ID }}) (result *ent.{{.SchemaName}}, err error) {
+func (u *usecase) Create(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error) {
+    err = u.repo.Create(ctx, b)
+    if err != nil {
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+    return
+}
+
+func (u *usecase) Get(ctx context.Context, id {{.FieldNameType.ID }}) (result *ent.{{.CamelSchemaName}}, err error) {
     result, err = u.repo.Get(ctx, id)
     if err != nil {
         if ent.IsNotFound(err) {
@@ -52,3 +76,93 @@ func (u *usecase) Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err er
 }
 
 
+func (u *usecase) List(ctx context.Context, q *common.ListRequest) (result []*ent.{{.CamelSchemaName}}, pgInfo *pagination.PaginationInfo, err error) {
+    total, err := u.repo.Total(ctx)
+    if err != nil {
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+
+    pg := pagination.NewPagination(q.PageSize, q.PageNo)
+    pg.SetTotal(total)
+
+    result, err = u.repo.List(ctx, &ListParams{
+        Limit: pg.GetLimit(),
+        Offset: pg.GetOffset(),
+        OrderFieldName: q.OrderFieldName,
+        OrderIsDesc: q.IsDesc,
+    })
+    if err != nil {
+        if ent.IsNotFound(err) {
+            err = common.NewUsecaseError(http.StatusNotFound, err, errors.New("존재하지 않습니다"))
+            return
+        }
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+    pgInfo = pg.GetInfo(len(result))
+    return
+}
+
+{{- range .Fields }}
+    {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}
+        {{- continue }}
+    {{- end }}
+
+func (u *usecase) GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (result *ent.{{$parent.CamelSchemaName}}, err error) {
+    result, err = u.repo.GetByUserID(ctx, id, userID)
+    if err != nil {
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+    return
+}
+
+func (u *usecase) DeleteOneByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (err error) {
+    err = u.repo.DeleteOneByUserID(ctx, id, userID)
+    if err != nil {
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+    return
+}
+
+func (u *usecase) UpdateOneByUserID(ctx context.Context, b *ent.{{$parent.CamelSchemaName}}) (result *ent.{{$parent.CamelSchemaName}}, err error) {
+    err = u.repo.UpdateOneByUserID(ctx, b)
+    if err != nil {
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+    return
+}
+
+
+func (u *usecase) ListByUserID(ctx context.Context, userID {{$parent.FieldNameType.UserID }}, q *common.ListRequest) (result []*ent.{{$parent.CamelSchemaName}}, pgInfo *pagination.PaginationInfo, err error) {
+    total, err := u.repo.TotalByUserID(ctx, userID)
+    if err != nil {
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+
+    pg := pagination.NewPagination(q.PageSize, q.PageNo)
+    pg.SetTotal(total)
+
+    result, err = u.repo.ListByUserID(ctx, userID, &ListParams{
+        Limit: pg.GetLimit(),
+        Offset: pg.GetOffset(),
+        OrderFieldName: q.OrderFieldName,
+        OrderIsDesc: q.IsDesc,
+    })
+    if err != nil {
+        if ent.IsNotFound(err) {
+            err = common.NewUsecaseError(http.StatusNotFound, err, errors.New("존재하지 않습니다"))
+            return
+        }
+        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        return
+    }
+
+    pgInfo = pg.GetInfo(len(result))
+    return
+}
+{{- end }}

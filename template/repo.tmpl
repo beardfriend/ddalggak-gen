@@ -1,3 +1,4 @@
+{{- $parent := . }}
 package {{.SchemaName}}
 
 import (
@@ -13,7 +14,17 @@ type Repo interface {
     Update(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error)
     Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err error)
     List(ctx context.Context, p *ListParams) ([]*ent.{{.CamelSchemaName}}, error)
-    Total(ctx context.Context, p *ListParams) (int, error)
+    Total(ctx context.Context) (int, error)
+{{- range .Fields }}
+    {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}
+        {{- continue }}
+    {{- end }}
+    GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (*ent.{{$parent.CamelSchemaName}}, error)
+    DeleteOneByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (err error)
+    UpdateOneByUserID(ctx context.Context, b *ent.{{$parent.CamelSchemaName}}) (err error)
+    TotalByUserID(ctx context.Context, userID {{$parent.FieldNameType.UserID }}) (int, error)
+    ListByUserID(ctx context.Context, userID {{$parent.FieldNameType.UserID }}, p *ListParams) ([]*ent.{{$parent.CamelSchemaName}}, error)
+{{- end }}
 }
 
 type repo struct {
@@ -99,12 +110,10 @@ func (r *repo) List(ctx context.Context, p *ListParams) ([]*ent.{{.CamelSchemaNa
     return q.All(ctx)
 }
 
-func (r *repo) Total(ctx context.Context, p *ListParams) (int, error) {
+func (r *repo) Total(ctx context.Context) (int, error) {
     return r.db.{{.CamelSchemaName}}.Query().Count(ctx)
 }
 
-
-{{- $parent := . }}
 
 {{- range .Fields }}
     {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}

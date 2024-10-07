@@ -57,15 +57,28 @@ func main() {
 			if err != nil {
 				return err
 			}
-			repoTemp, err := templates.ReadFile("template/repo.tmpl")
-			if err != nil {
-				return err
-			}
-			err = internal.GenRepoFile(repoTemp, field, workingDir, modulePath, moduleName, schemaName)
+			repoTemp, _ := templates.ReadFile("template/repo.tmpl")
 
+			err = internal.GenRepoFile(repoTemp, field, workingDir, modulePath, moduleName, schemaName)
+			log.Println("Repo File", "생성여부:", err == nil)
 			if err != nil {
-				return err
+				log.Println(err)
 			}
+
+			usecaseTemp, _ := templates.ReadFile("template/usecase.tmpl")
+			err = internal.GenUsecaseFile(usecaseTemp, field, workingDir, modulePath, moduleName, schemaName)
+			log.Println("Usecase File", "생성여부:", err == nil)
+			if err != nil {
+				log.Println(err)
+			}
+
+			apiTEMP, _ := templates.ReadFile("template/api.tmpl")
+			err = internal.GenAPIFile(apiTEMP, field, workingDir, modulePath, moduleName, schemaName)
+			log.Println("API File", "생성여부:", err == nil)
+			if err != nil {
+				log.Println(err)
+			}
+
 			return nil
 		},
 	}
