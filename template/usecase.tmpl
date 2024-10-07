@@ -48,7 +48,7 @@ func (u *usecase) Get(ctx context.Context, id {{.FieldNameType.ID }}) (result *e
     result, err = u.repo.Get(ctx, id)
     if err != nil {
         if ent.IsNotFound(err) {
-            err = common.NewUsecaseError(http.StatusNotFound, err, errors.New("존재하지 않습니다"))
+            err = common.NewUsecaseError(http.StatusNotFound, err, common.ErrNotfound)
             return
         }
         err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
@@ -94,7 +94,7 @@ func (u *usecase) List(ctx context.Context, q *common.ListRequest) (result []*en
     })
     if err != nil {
         if ent.IsNotFound(err) {
-            err = common.NewUsecaseError(http.StatusNotFound, err, errors.New("존재하지 않습니다"))
+            err = common.NewUsecaseError(http.StatusNotFound, err, common.ErrNotfound)
             return
         }
         err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
@@ -155,7 +155,7 @@ func (u *usecase) ListByUserID(ctx context.Context, userID {{$parent.FieldNameTy
     })
     if err != nil {
         if ent.IsNotFound(err) {
-            err = common.NewUsecaseError(http.StatusNotFound, err, errors.New("존재하지 않습니다"))
+            err = common.NewUsecaseError(http.StatusNotFound, err, common.ErrNotfound)
             return
         }
         err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
