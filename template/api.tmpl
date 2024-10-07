@@ -166,7 +166,7 @@ func (a *API) Delete(c *fiber.Ctx) error {
 // @Success      200  {object}	common.ResponseWithData{result=ent.{{.CamelSchemaName}}}
 // @Failure      400  {object}	common.Response{}
 // @Failure      500  {object}	common.Response{}
-// @Router       /{{.SchemaName}}s/{id} [delete]
+// @Router       /{{.SchemaName}}s/{id} [put]
 func (a *API) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
 	{{- if .FieldNameType.ID | eq "int" }}
