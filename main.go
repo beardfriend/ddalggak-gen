@@ -60,21 +60,21 @@ func main() {
 			repoTemp, _ := templates.ReadFile("template/repo.tmpl")
 
 			err = internal.GenRepoFile(repoTemp, field, workingDir, modulePath, moduleName, schemaName)
-			log.Println("Repo File", "생성여부:", err == nil)
+			log.Println("Repo File", "Generated:", err == nil)
 			if err != nil {
 				log.Println(err)
 			}
 
 			usecaseTemp, _ := templates.ReadFile("template/usecase.tmpl")
 			err = internal.GenUsecaseFile(usecaseTemp, field, workingDir, modulePath, moduleName, schemaName)
-			log.Println("Usecase File", "생성여부:", err == nil)
+			log.Println("Usecase File", "Generated:", err == nil)
 			if err != nil {
 				log.Println(err)
 			}
 
 			apiTEMP, _ := templates.ReadFile("template/api.tmpl")
 			err = internal.GenAPIFile(apiTEMP, field, workingDir, modulePath, moduleName, schemaName)
-			log.Println("API File", "생성여부:", err == nil)
+			log.Println("API File", "Generated:", err == nil)
 			if err != nil {
 				log.Println(err)
 			}
