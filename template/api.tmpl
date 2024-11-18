@@ -102,7 +102,7 @@ func (a *API) Get(c *fiber.Ctx) error {
 // @Router       /{{.SchemaName}}s [get]
 func (a *API) List(c *fiber.Ctx) error {
     req := new(common.ListRequest)
-    if err := c.BodyParser(req); err != nil {
+    if err := c.QueryParser(req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
 	}
 	if err := a.validator.ValidateStruct(req); err != nil {
