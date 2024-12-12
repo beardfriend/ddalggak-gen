@@ -111,6 +111,10 @@ func (u *usecase) List(ctx context.Context, q *common.ListRequest) (result []*en
 func (u *usecase) GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (result *ent.{{$parent.CamelSchemaName}}, err error) {
     result, err = u.repo.GetByUserID(ctx, id, userID)
     if err != nil {
+        if ent.IsNotFound(err) {
+            err = common.NewUsecaseError(http.StatusNotFound, err, common.ErrNotfound)
+            return
+        }
         err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
         return
     }
