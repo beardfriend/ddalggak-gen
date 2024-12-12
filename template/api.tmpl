@@ -3,10 +3,9 @@ package {{.SchemaName}}
 import (
     "{{.ModuleName}}/ent"
     _ "{{.ModuleName}}/pkg/pagination"
-    "{{.ModuleName}}/pkg/validatorx"
      "{{.ModuleName}}/internal/common"
     "net/http"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	{{- if .FieldNameType.ID | eq "int" }}
 	"strconv"
 	{{- else if .FieldNameType.ID | eq "uuid.UUID" }}
@@ -17,11 +16,10 @@ import (
 
 type API struct {
     usecase Usecase
-    validator validatorx.Validator  
 }
 
-func NewAPI(usecase Usecase, validator validatorx.Validator) *API {
-	return &API{usecase, validator}
+func NewAPI(usecase Usecase) *API {
+	return &API{usecase}
 }
 
 // Create godoc
@@ -36,14 +34,12 @@ func NewAPI(usecase Usecase, validator validatorx.Validator) *API {
 // @Failure      400  {object}	common.Response{}
 // @Failure      500  {object}	common.Response{}
 // @Router       /{{.SchemaName}}s [post]
-func (a *API) Create(c *fiber.Ctx) error {
+func (a *API) Create(c fiber.Ctx) error {
 	body := new(ent.{{.CamelSchemaName}})
-	if err := c.BodyParser(body); err != nil {
+	if err := c.Bind().Body(body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
 	}
-	if err := a.validator.ValidateStruct(body); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
-	}
+	
 	err := a.usecase.Create(c.Context(), body)
 	if err != nil {
 		return common.ParseError(c, err)
@@ -63,7 +59,7 @@ func (a *API) Create(c *fiber.Ctx) error {
 // @Failure      400  {object}	common.Response{}
 // @Failure      500  {object}	common.Response{}
 // @Router       /{{.SchemaName}}s/{id} [get]
-func (a *API) Get(c *fiber.Ctx) error {
+func (a *API) Get(c fiber.Ctx) error {
 	id := c.Params("id")
 	{{- if .FieldNameType.ID | eq "int" }}
 	idParsed, err := strconv.Atoi(id)
@@ -100,12 +96,9 @@ func (a *API) Get(c *fiber.Ctx) error {
 // @Failure      404  {object}	common.Response{}
 // @Failure      500  {object}	common.Response{}
 // @Router       /{{.SchemaName}}s [get]
-func (a *API) List(c *fiber.Ctx) error {
+func (a *API) List(c fiber.Ctx) error {
     req := new(common.ListRequest)
-    if err := c.QueryParser(req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
-	}
-	if err := a.validator.ValidateStruct(req); err != nil {
+    if err := c.Bind().Query(req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
 	}
 
@@ -131,7 +124,7 @@ func (a *API) List(c *fiber.Ctx) error {
 // @Failure      400  {object}	common.Response{}
 // @Failure      500  {object}	common.Response{}
 // @Router       /{{.SchemaName}}s/{id} [delete]
-func (a *API) Delete(c *fiber.Ctx) error {
+func (a *API) Delete(c fiber.Ctx) error {
 	id := c.Params("id")
 	{{- if .FieldNameType.ID | eq "int" }}
 	idParsed, err := strconv.Atoi(id)
@@ -167,7 +160,7 @@ func (a *API) Delete(c *fiber.Ctx) error {
 // @Failure      400  {object}	common.Response{}
 // @Failure      500  {object}	common.Response{}
 // @Router       /{{.SchemaName}}s/{id} [put]
-func (a *API) Update(c *fiber.Ctx) error {
+func (a *API) Update(c fiber.Ctx) error {
 	id := c.Params("id")
 	{{- if .FieldNameType.ID | eq "int" }}
 	idParsed, err := strconv.Atoi(id)
@@ -181,12 +174,10 @@ func (a *API) Update(c *fiber.Ctx) error {
 	}
 	{{- end }}
 	body := new(ent.{{.CamelSchemaName}})
-	if err := c.BodyParser(body); err != nil {
+	if err := c.Bind().Body(body); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
 	}
-	if err := a.validator.ValidateStruct(body); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
-	}
+	
 	body.ID = idParsed
 	err = a.usecase.Update(c.Context(), body)
 	if err != nil {

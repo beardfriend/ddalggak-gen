@@ -8,6 +8,9 @@ import (
     "errors"
     "{{.ModuleName}}/internal/common"
     "{{.ModuleName}}/pkg/pagination"
+    {{-  if .FieldNameType.ID | eq "uuid.UUID" }}
+	"github.com/google/uuid"
+	{{- end }}
 )
 
 type Usecase interface {
@@ -17,7 +20,7 @@ type Usecase interface {
     Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err error)
     List(ctx context.Context, q *common.ListRequest) (result []*ent.{{.CamelSchemaName}}, pgInfo *pagination.PaginationInfo, err error)
 {{- range .Fields }}
-    {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}
+    {{- if or (not (eq .Name "UserID")) (not .IsRelationID) }}
         {{- continue }}
     {{- end }}
     GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (result *ent.{{$parent.CamelSchemaName}}, err error)
@@ -93,10 +96,6 @@ func (u *usecase) List(ctx context.Context, q *common.ListRequest) (result []*en
         OrderIsDesc: q.IsDesc,
     })
     if err != nil {
-        if ent.IsNotFound(err) {
-            err = common.NewUsecaseError(http.StatusNotFound, err, common.ErrNotfound)
-            return
-        }
         err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
         return
     }
@@ -105,7 +104,7 @@ func (u *usecase) List(ctx context.Context, q *common.ListRequest) (result []*en
 }
 
 {{- range .Fields }}
-    {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}
+    {{- if or (not (eq .Name "UserID")) (not .IsRelationID) }}
         {{- continue }}
     {{- end }}
 
@@ -154,10 +153,6 @@ func (u *usecase) ListByUserID(ctx context.Context, userID {{$parent.FieldNameTy
         OrderIsDesc: q.IsDesc,
     })
     if err != nil {
-        if ent.IsNotFound(err) {
-            err = common.NewUsecaseError(http.StatusNotFound, err, common.ErrNotfound)
-            return
-        }
         err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
         return
     }

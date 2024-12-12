@@ -6,6 +6,9 @@ import (
     "{{.ModuleName}}/ent/{{.SchemaName}}"
     "context"
     "entgo.io/ent/dialect/sql"
+    {{-  if .FieldNameType.ID | eq "uuid.UUID" }}
+	"github.com/google/uuid"
+	{{- end }}
 )
 
 type Repo interface {
@@ -16,7 +19,8 @@ type Repo interface {
     List(ctx context.Context, p *ListParams) ([]*ent.{{.CamelSchemaName}}, error)
     Total(ctx context.Context) (int, error)
 {{- range .Fields }}
-    {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}
+
+    {{- if or (not (eq .Name "UserID")) (not .IsRelationID) }}
         {{- continue }}
     {{- end }}
     GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (*ent.{{$parent.CamelSchemaName}}, error)
@@ -116,7 +120,7 @@ func (r *repo) Total(ctx context.Context) (int, error) {
 
 
 {{- range .Fields }}
-    {{- if and (not (eq .Name "UserID")) (not .IsRelationID) }}
+    {{- if or (not (eq .Name "UserID")) (not .IsRelationID) }}
         {{- continue }}
     {{- end }}
 
