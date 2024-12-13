@@ -41,7 +41,7 @@ func NewUsecase(repo Repo) Usecase {
 func (u *usecase) Create(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error) {
     err = u.repo.Create(ctx, b)
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
     return
@@ -51,10 +51,10 @@ func (u *usecase) Get(ctx context.Context, id {{.FieldNameType.ID }}) (result *e
     result, err = u.repo.Get(ctx, id)
     if err != nil {
         if ent.IsNotFound(err) {
-            err = common.NewUsecaseError(http.StatusNotFound, err, common.ErrNotfound)
+            err = common.NewUsecaseErrorId(http.StatusNotFound, err, common.ErrIdNotfound)
             return
         }
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
     return
@@ -63,7 +63,7 @@ func (u *usecase) Get(ctx context.Context, id {{.FieldNameType.ID }}) (result *e
 func (u *usecase) Update(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err error) {
     err = u.repo.Update(ctx, b)
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
     return
@@ -72,7 +72,7 @@ func (u *usecase) Update(ctx context.Context, b *ent.{{.CamelSchemaName}}) (err 
 func (u *usecase) Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err error) {
     err = u.repo.Delete(ctx, id)
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
     return
@@ -82,7 +82,7 @@ func (u *usecase) Delete(ctx context.Context, id {{.FieldNameType.ID }}) (err er
 func (u *usecase) List(ctx context.Context, q *common.ListRequest) (result []*ent.{{.CamelSchemaName}}, pgInfo *pagination.PaginationInfo, err error) {
     total, err := u.repo.Total(ctx)
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
 
@@ -96,7 +96,7 @@ func (u *usecase) List(ctx context.Context, q *common.ListRequest) (result []*en
         OrderIsDesc: q.IsDesc,
     })
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
     pgInfo = pg.GetInfo(len(result))
@@ -112,10 +112,10 @@ func (u *usecase) GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID
     result, err = u.repo.GetByUserID(ctx, id, userID)
     if err != nil {
         if ent.IsNotFound(err) {
-            err = common.NewUsecaseError(http.StatusNotFound, err, common.ErrNotfound)
+            err = common.NewUsecaseErrorId(http.StatusNotFound, err, common.ErrIdNotfound)
             return
         }
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
     return
@@ -124,7 +124,7 @@ func (u *usecase) GetByUserID(ctx context.Context, id {{$parent.FieldNameType.ID
 func (u *usecase) DeleteOneByUserID(ctx context.Context, id {{$parent.FieldNameType.ID }}, userID {{$parent.FieldNameType.UserID }}) (err error) {
     err = u.repo.DeleteOneByUserID(ctx, id, userID)
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
     return
@@ -133,7 +133,7 @@ func (u *usecase) DeleteOneByUserID(ctx context.Context, id {{$parent.FieldNameT
 func (u *usecase) UpdateOneByUserID(ctx context.Context, b *ent.{{$parent.CamelSchemaName}}) (result *ent.{{$parent.CamelSchemaName}}, err error) {
     err = u.repo.UpdateOneByUserID(ctx, b)
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
     return
@@ -143,7 +143,7 @@ func (u *usecase) UpdateOneByUserID(ctx context.Context, b *ent.{{$parent.CamelS
 func (u *usecase) ListByUserID(ctx context.Context, userID {{$parent.FieldNameType.UserID }}, q *common.ListRequest) (result []*ent.{{$parent.CamelSchemaName}}, pgInfo *pagination.PaginationInfo, err error) {
     total, err := u.repo.TotalByUserID(ctx, userID)
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
 
@@ -157,7 +157,7 @@ func (u *usecase) ListByUserID(ctx context.Context, userID {{$parent.FieldNameTy
         OrderIsDesc: q.IsDesc,
     })
     if err != nil {
-        err = common.NewUsecaseError(http.StatusInternalServerError, err, common.ErrDatabaseError)
+        err = common.NewUsecaseErrorId(http.StatusInternalServerError, err, common.ErrIdDatabase)
         return
     }
 

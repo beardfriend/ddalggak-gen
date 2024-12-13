@@ -5,6 +5,7 @@ import (
     _ "{{.ModuleName}}/pkg/pagination"
      "{{.ModuleName}}/internal/common"
     "net/http"
+	"{{.ModuleName}}/internal/i18n"
 	"github.com/gofiber/fiber/v3"
 	{{- if .FieldNameType.ID | eq "int" }}
 	"strconv"
@@ -37,7 +38,7 @@ func NewAPI(usecase Usecase) *API {
 func (a *API) Create(c fiber.Ctx) error {
 	body := new(ent.{{.CamelSchemaName}})
 	if err := c.Bind().Body(body); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 	
 	err := a.usecase.Create(c.Context(), body)
@@ -45,7 +46,7 @@ func (a *API) Create(c fiber.Ctx) error {
 		return common.ParseError(c, err)
 	}
 	return c.Status(http.StatusCreated).JSON(common.Response{
-		Message: "created",
+		Message: i18n.T().GetTranslateMust(c, common.ActionIdCreated),
 	})
 }
 
@@ -64,12 +65,12 @@ func (a *API) Get(c fiber.Ctx) error {
 	{{- if .FieldNameType.ID | eq "int" }}
 	idParsed, err := strconv.Atoi(id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 	{{- else if .FieldNameType.ID | eq "uuid.UUID" }}
 	idParsed, err := uuid.Parse(id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 	{{- end }}
 
@@ -99,7 +100,7 @@ func (a *API) Get(c fiber.Ctx) error {
 func (a *API) List(c fiber.Ctx) error {
     req := new(common.ListRequest)
     if err := c.Bind().Query(req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 
 	list, pgInfo, err := a.usecase.List(c.Context(),req)
@@ -129,12 +130,12 @@ func (a *API) Delete(c fiber.Ctx) error {
 	{{- if .FieldNameType.ID | eq "int" }}
 	idParsed, err := strconv.Atoi(id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 	{{- else if .FieldNameType.ID | eq "uuid.UUID" }}
 	idParsed, err := uuid.Parse(id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 	{{- end }}
 	err = a.usecase.Delete(c.Context(), idParsed)
@@ -143,7 +144,7 @@ func (a *API) Delete(c fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(common.Response{
-		Message: "ok",
+		Message: i18n.T().GetTranslateMust(c, common.ActionIdDeleted),
 	})
 }
 
@@ -165,17 +166,17 @@ func (a *API) Update(c fiber.Ctx) error {
 	{{- if .FieldNameType.ID | eq "int" }}
 	idParsed, err := strconv.Atoi(id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 	{{- else if .FieldNameType.ID | eq "uuid.UUID" }}
 	idParsed, err := uuid.Parse(id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 	{{- end }}
 	body := new(ent.{{.CamelSchemaName}})
 	if err := c.Bind().Body(body); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: "bad request"})
+		return c.Status(http.StatusBadRequest).JSON(common.Response{Message: i18n.T().GetTranslateMust(c, common.ErrIdBadRequest)})
 	}
 	
 	body.ID = idParsed
@@ -185,6 +186,6 @@ func (a *API) Update(c fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(common.Response{
-		Message: "ok",
+		Message: i18n.T().GetTranslateMust(c, common.ActionIdUpdated),
 	})
 }
